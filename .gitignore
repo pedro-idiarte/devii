@@ -1,0 +1,17 @@
+# Ambiente Virtual do Python
+venv/
+__pycache__/
+
+# Configurações de Django
+*.sqlite3
+db.sqlite3
+*.pyc
+
+# Node.js
+node_modules/
+build/
+.env
+
+# IDEs e Sistema Operacional
+.vscode/
+.DS_Store
