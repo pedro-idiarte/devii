@@ -12,26 +12,26 @@ import {
     Toolbar,
     Typography,
     useTheme,
+    Button,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
-    Assignment,
-    School,
-    Person,
-    ExitToApp,
+    ExitToApp as LogoutIcon,
+    Description as RequestIcon,
+    Add as AddIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
-const drawerWidth = 240;
 
 interface MainLayoutProps {
     children: React.ReactNode;
 }
 
+const drawerWidth = 240;
+
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
-    const { user, signOut } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const theme = useTheme();
 
@@ -39,49 +39,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         setMobileOpen(!mobileOpen);
     };
 
-    const menuItems = [
-        {
-            text: 'Minhas Solicitações',
-            icon: <Assignment />,
-            path: '/requests',
-            roles: ['STUDENT', 'COORDINATOR', 'CRE', 'ADMIN'],
-        },
-        {
-            text: 'Usuários',
-            icon: <Person />,
-            path: '/users',
-            roles: ['CRE', 'ADMIN'],
-        },
-        {
-            text: 'Certificações',
-            icon: <School />,
-            path: '/certifications',
-            roles: ['STUDENT', 'COORDINATOR', 'CRE', 'ADMIN'],
-        },
-    ];
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const drawer = (
         <div>
             <Toolbar />
             <List>
-                {menuItems
-                    .filter((item) => item.roles.includes(user?.role || ''))
-                    .map((item) => (
-                        <ListItem
-                            button
-                            key={item.text}
-                            onClick={() => navigate(item.path)}
-                        >
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.text} />
-                        </ListItem>
-                    ))}
-                <ListItem button onClick={signOut}>
+                <ListItem button onClick={() => navigate('/requests')}>
                     <ListItemIcon>
-                        <ExitToApp />
+                        <RequestIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Sair" />
+                    <ListItemText primary="Solicitações" />
                 </ListItem>
+                {user?.role === 'STUDENT' && (
+                    <ListItem button onClick={() => navigate('/requests/new')}>
+                        <ListItemIcon>
+                            <AddIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Nova Solicitação" />
+                    </ListItem>
+                )}
             </List>
         </div>
     );
@@ -106,9 +86,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div">
-                        Sistema de Formulários
+                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                        Sistema de Solicitações
                     </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body1" sx={{ mr: 2 }}>
+                            {user?.name}
+                        </Typography>
+                        <Button
+                            color="inherit"
+                            onClick={handleLogout}
+                            startIcon={<LogoutIcon />}
+                        >
+                            Sair
+                        </Button>
+                    </Box>
                 </Toolbar>
             </AppBar>
             <Box
@@ -117,6 +109,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             >
                 <Drawer
                     variant="temporary"
+                    anchor={theme.direction === 'rtl' ? 'right' : 'left'}
                     open={mobileOpen}
                     onClose={handleDrawerToggle}
                     ModalProps={{

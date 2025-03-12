@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types/models';
 import api from '../services/api';
+
+interface User {
+    id: number;
+    email: string;
+    name: string;
+    role: string;
+}
 
 interface AuthContextData {
     user: User | null;
     loading: boolean;
-    signIn: (token: string) => Promise<void>;
-    signOut: () => void;
+    login: (accessToken: string) => Promise<void>;
+    logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -16,37 +22,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('@App:token');
         if (token) {
-            loadUser(token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            api.get('/users/me/')
+                .then(response => {
+                    setUser(response.data);
+                })
+                .catch(() => {
+                    localStorage.removeItem('@App:token');
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
         } else {
             setLoading(false);
         }
     }, []);
 
-    const loadUser = async (token: string) => {
+    const login = async (accessToken: string) => {
         try {
+            localStorage.setItem('@App:token', accessToken);
+            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            
             const response = await api.get('/users/me/');
             setUser(response.data);
         } catch (error) {
-            localStorage.removeItem('token');
-        } finally {
-            setLoading(false);
+            localStorage.removeItem('@App:token');
+            throw error;
         }
     };
 
-    const signIn = async (token: string) => {
-        localStorage.setItem('token', token);
-        await loadUser(token);
-    };
-
-    const signOut = () => {
-        localStorage.removeItem('token');
+    const logout = () => {
+        localStorage.removeItem('@App:token');
+        api.defaults.headers.common['Authorization'] = '';
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

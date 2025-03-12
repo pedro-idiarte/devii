@@ -14,12 +14,19 @@ import {
     TablePagination,
     TextField,
     MenuItem,
+    Container,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    IconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/Layout/MainLayout';
 import { RequestBase } from '../../types/models';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { Visibility as VisibilityIcon } from '@mui/icons-material';
 
 const statusTranslations = {
     PENDING: 'Pendente',
@@ -184,13 +191,13 @@ const RequestList: React.FC = () => {
                                             {new Date(request.created_at).toLocaleDateString()}
                                         </TableCell>
                                         <TableCell>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
+                                            <IconButton 
+                                                edge="end" 
+                                                aria-label="view"
                                                 onClick={() => navigate(`/requests/${request.id}`)}
                                             >
-                                                Detalhes
-                                            </Button>
+                                                <VisibilityIcon />
+                                            </IconButton>
                                         </TableCell>
                                     </TableRow>
                                 ))}
